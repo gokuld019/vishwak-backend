@@ -7,7 +7,7 @@ const {
   getAmenitiesByProject,
   updateAmenity,
   deleteAmenity,
-} = require("../controllers/ProjectamenityController");
+} = require("../controllers/projectamenityController");
 
 // CREATE (text + image amenities)
 router.post("/", upload.fields([{ name: "galleryImages" }]), addAllAmenities);
