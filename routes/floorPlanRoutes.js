@@ -1,19 +1,25 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const upload = require('../config/multer');
+
+const upload = require("../middlewares/floorPlanUpload");  // <-- add this
+
 const {
-  getFloorPlansByProject,
   createFloorPlan,
-  updateFloorPlan,
+  getFloorPlans,
   deleteFloorPlan,
-} = require('../controllers/floorPlanController');
+  submitFloorPlanEnquiry
+} = require("../controllers/floorPlanController");
 
-// Public – frontend
-router.get('/:projectId', getFloorPlansByProject);
+// ADD FLOOR PLAN (POST)
+router.post("/", upload.single("image"), createFloorPlan);   // <-- REQUIRED
 
-// Admin – CMS
-router.post('/', upload.single('image'), createFloorPlan);
-router.put('/:id', upload.single('image'), updateFloorPlan);
-router.delete('/:id', deleteFloorPlan);
+// GET ALL FLOOR PLANS FOR A PROJECT
+router.get("/:projectId", getFloorPlans);
+
+// DELETE
+router.delete("/:id", deleteFloorPlan);
+
+// POST ENQUIRY
+router.post("/enquiry", submitFloorPlanEnquiry);
 
 module.exports = router;

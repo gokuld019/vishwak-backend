@@ -1,32 +1,25 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const ConstructionUpdate = sequelize.define('ConstructionUpdate', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+const ConstructionUpdate = sequelize.define(
+  "ConstructionUpdate",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 
-  projectId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
+    projectId: { type: DataTypes.INTEGER, allowNull: false },
+
+    update: { type: DataTypes.STRING, allowNull: false },
+
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+
+    progress: { type: DataTypes.INTEGER, allowNull: false },
+
+    image: { type: DataTypes.STRING, allowNull: true },
   },
-
-  date: {
-    type: DataTypes.DATEONLY,
-    allowNull: false,
-  },
-
-  update: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
-  progress: {
-    type: DataTypes.INTEGER, // 0–100
-    allowNull: false,
-  },
-
-}, {
-  tableName: 'construction_updates',
-  timestamps: true,
-});
+  {
+    tableName: "construction_updates",
+    timestamps: true,
+  }
+);
 
 module.exports = ConstructionUpdate;

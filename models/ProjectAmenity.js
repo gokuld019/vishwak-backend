@@ -1,22 +1,36 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
-const ProjectAmenity = sequelize.define('ProjectAmenity', {
-  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+const ProjectAmenity = sequelize.define(
+  "ProjectAmenity",
+  {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 
-  projectId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
+    projectId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+
+    // "text" or "image"
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
-
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
-}, {
-  tableName: 'project_amenities',
-  timestamps: true,
-});
+  {
+    tableName: "project_amenities",
+    timestamps: true,
+  }
+);
 
 module.exports = ProjectAmenity;

@@ -10,15 +10,25 @@ const path = require("path");
  */
 exports.getBanners = async (req, res) => {
   try {
+    const { deviceType } = req.query; // ?deviceType=web or mobile
+
+    const where = {};
+    if (deviceType === "web" || deviceType === "mobile") {
+      where.deviceType = deviceType;
+    }
+
     const banners = await Banner.findAll({
+      where,
       order: [["id", "ASC"]],
     });
+
     return res.json(banners);
   } catch (err) {
     console.error("Error fetching banners:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 /**
  * -----------------------------------------------------
@@ -50,14 +60,17 @@ exports.getBannerById = async (req, res) => {
 exports.uploadBanners = async (req, res) => {
   try {
     const files = req.files; // multer → upload.array("banners", 3)
-    const { title, subtitle } = req.body;
+    const { title, subtitle, deviceType } = req.body;
 
     if (!files || files.length === 0) {
       return res.status(400).json({ message: "Please upload at least 1 banner image" });
     }
 
-    // Get old banners
-    const oldBanners = await Banner.findAll();
+    // ⭐ decide if this upload is for web or mobile
+    const bannerType = deviceType === "mobile" ? "mobile" : "web";
+
+    // Get old banners of THIS type (web or mobile)
+    const oldBanners = await Banner.findAll({ where: { deviceType: bannerType } });
 
     // Delete old banner images from disk
     oldBanners.forEach((b) => {
@@ -66,8 +79,8 @@ exports.uploadBanners = async (req, res) => {
       }
     });
 
-    // Delete old banners from DB
-    await Banner.destroy({ where: {} });
+    // Delete old banners from DB (of this type only)
+    await Banner.destroy({ where: { deviceType: bannerType } });
 
     // Prepare new banners
     const newBanners = files.map((file) => ({
@@ -75,13 +88,14 @@ exports.uploadBanners = async (req, res) => {
       subtitle: subtitle || null,
       highlight: null,
       image: "/uploads/banners/" + file.filename,
+      deviceType: bannerType,       // ⭐ IMPORTANT
     }));
 
     // Insert into DB
     const created = await Banner.bulkCreate(newBanners);
 
     return res.status(201).json({
-      message: "Banners uploaded successfully",
+      message: `Banners (${bannerType}) uploaded successfully`,
       banners: created,
     });
   } catch (err) {
@@ -89,6 +103,7 @@ exports.uploadBanners = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 /**
  * -----------------------------------------------------

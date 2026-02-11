@@ -1,53 +1,87 @@
-const Specification = require('../models/Specification');
+const Specification = require("../models/Specification");
 
-exports.getSpecificationsByProject = async (req, res) => {
+// CREATE MULTIPLE SPECIFICATIONS
+exports.addSpecifications = async (req, res) => {
+  try {
+    const { projectId, specs } = req.body;
+
+    if (!projectId || !specs) {
+      return res.status(400).json({ message: "projectId & specs required" });
+    }
+
+    const created = [];
+
+    for (const spec of specs) {
+      const item = await Specification.create({
+        projectId,
+        category: spec.category,
+        detail: spec.detail,
+      });
+
+      created.push(item);
+    }
+
+    return res.json({
+      message: "Specifications saved successfully",
+      specifications: created,
+    });
+  } catch (err) {
+    console.error("Error saving specs:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// GET ALL SPECIFICATIONS FOR A PROJECT
+exports.getSpecifications = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const specs = await Specification.findAll({ where: { projectId }, order: [['id', 'ASC']] });
-    res.json(specs);
+
+    const list = await Specification.findAll({
+      where: { projectId },
+      order: [["id", "ASC"]],
+    });
+
+    return res.json({ specifications: list });
   } catch (err) {
-    console.error('Error getSpecificationsByProject:', err);
-    res.status(500).json({ message: 'Server error while fetching specifications' });
+    console.error("Error fetching specs:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-exports.createSpecification = async (req, res) => {
-  try {
-    const { projectId, category, detail } = req.body;
-    const spec = await Specification.create({ projectId, category, detail });
-    res.status(201).json(spec);
-  } catch (err) {
-    console.error('Error createSpecification:', err);
-    res.status(500).json({ message: 'Server error while creating specification' });
-  }
-};
-
+// UPDATE SPECIFICATION
 exports.updateSpecification = async (req, res) => {
   try {
     const { id } = req.params;
     const { category, detail } = req.body;
 
     const spec = await Specification.findByPk(id);
-    if (!spec) return res.status(404).json({ message: 'Specification not found' });
+    if (!spec) return res.status(404).json({ message: "Not found" });
 
-    spec.category = category ?? spec.category;
-    spec.detail = detail ?? spec.detail;
+    spec.category = category || spec.category;
+    spec.detail = detail || spec.detail;
+
     await spec.save();
-    res.json(spec);
+
+    res.json({ message: "Updated successfully", spec });
   } catch (err) {
-    console.error('Error updateSpecification:', err);
-    res.status(500).json({ message: 'Server error while updating specification' });
+    console.error("Update error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
+// DELETE SPECIFICATION
 exports.deleteSpecification = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await Specification.destroy({ where: { id } });
-    if (!deleted) return res.status(404).json({ message: 'Specification not found' });
-    res.json({ message: 'Specification deleted' });
+
+    const spec = await Specification.findByPk(id);
+    if (!spec) return res.status(404).json({ message: "Not found" });
+
+    await spec.destroy();
+
+    res.json({ message: "Deleted successfully" });
   } catch (err) {
-    console.error('Error deleteSpecification:', err);
-    res.status(500).json({ message: 'Server error while deleting specification' });
+    console.error("Delete error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
