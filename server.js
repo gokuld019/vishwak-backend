@@ -48,7 +48,7 @@ app.use(cookieParser());
 // =========================================================
 app.use(
   cors({
-    origin: ["http://vishwak-properties.vercel.app", "http://127.0.0.1:3000"],
+    origin: ["https:vishwak-properties.vercel.app", "http://127.0.0.1:3000"],
     credentials: true,
     methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: ["Content-Type", "Authorization"],
