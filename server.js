@@ -1,9 +1,5 @@
-// =========================================================
 // server.js - Vishwak Properties Backend
-// =========================================================
-
 require("dotenv").config();
-
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -12,12 +8,7 @@ const path = require("path");
 // Database
 const sequelize = require("./config/db");
 
-// IMPORTANT: Load all Sequelize models BEFORE sync
-require("./models");
-
-// =========================================================
-// IMPORT ROUTES
-// =========================================================
+// Import Routes
 const authRoutes = require("./routes/auth");
 const bannerRoutes = require("./routes/bannerRoutes");
 const projectRoutes = require("./routes/projectRoutes");
@@ -43,7 +34,6 @@ const projectStatsRoutes = require("./routes/projectStatsRoutes");
 const projectMediaRoutes = require("./routes/projectMediaRoutes");
 const careerRoutes = require("./routes/careerRoutes");
 const contactFormRoutes = require("./routes/contactFormRoutes");
-
 const app = express();
 
 // =========================================================
@@ -54,26 +44,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // =========================================================
-// CORS CONFIG
+// CORS CONFIG (Frontend: localhost:3000)
 // =========================================================
 app.use(
   cors({
-    origin: [
-      "https://vishwak-properties.vercel.app",
-      "http://127.0.0.1:3000",
-    ],
+    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // =========================================================
-// STATIC FILES (UPLOADS)
+// STATIC FILES WITH CORS FIX FOR CINEMATIC 360°
 // =========================================================
+// IMPORTANT: put BEFORE routes
 app.use("/uploads", (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Cross-Origin-Resource-Policy", "cross-origin");
+  res.header("Access-Control-Allow-Origin", "*"); // allow image fetch
+  res.header("Cross-Origin-Resource-Policy", "cross-origin"); // required for some browsers
   next();
 });
 
@@ -84,7 +72,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // =========================================================
 app.use("/api/auth", authRoutes);
 app.use("/api/banners", bannerRoutes);
-app.use("/api/projects/menu", projectMenuRoutes);
+app.use("/api/projects/menu", projectMenuRoutes); // MUST BE ABOVE
 app.use("/api/projects", projectRoutes);
 app.use("/api/amenities", amenityRoutes);
 app.use("/api/articles", articleRoutes);
@@ -112,10 +100,7 @@ app.use("/api/contact-form", contactFormRoutes);
 // HEALTH CHECK
 // =========================================================
 app.get("/", (req, res) => {
-  res.json({
-    status: "success",
-    message: "Backend Running 🚀",
-  });
+  res.json({ status: "success", message: "Backend Running 🚀" });
 });
 
 // =========================================================
@@ -129,13 +114,14 @@ const PORT = process.env.PORT || 5000;
     await sequelize.authenticate();
     console.log("✅ MySQL connected");
 
-    console.log("🔄 Syncing models...");
-    await sequelize.sync(); // create tables if not exists
-    console.log("✅ Models synced");
+   console.log("🔄 Checking models...");
+await sequelize.sync({ alter: false });
+console.log("✅ Models ready");
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+
+    app.listen(PORT, () =>
+      console.log(`🚀 Server running at http://localhost:${PORT}`)
+    );
   } catch (err) {
     console.error("❌ Startup error:", err.message);
     process.exit(1);
