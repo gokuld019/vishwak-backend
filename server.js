@@ -114,10 +114,9 @@ const PORT = process.env.PORT || 5000;
     await sequelize.authenticate();
     console.log("✅ MySQL connected");
 
-   console.log("🔄 Checking models...");
-await sequelize.sync({ alter: false });
-console.log("✅ Models ready");
-
+    console.log("🔄 Syncing models...");
+    await sequelize.sync();
+    console.log("✅ Models synced");
 
     app.listen(PORT, () =>
       console.log(`🚀 Server running at http://localhost:${PORT}`)
