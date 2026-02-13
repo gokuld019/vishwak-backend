@@ -18,6 +18,12 @@ const sequelize = new Sequelize(
       },
     },
 
+    define: {
+      timestamps: false,
+    },
+
+    timezone: "+05:30",
+
     pool: {
       max: 5,
       min: 0,
