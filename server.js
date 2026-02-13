@@ -46,19 +46,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // =========================================================
-// CORS CONFIG (FINAL PRODUCTION VERSION)
+// CORS CONFIG (PRODUCTION SAFE)
 // =========================================================
 app.use(
   cors({
-    origin: ["https://vishwak-properties.vercel.app"],
+    origin: [
+      "https://vishwak-properties.vercel.app",
+      "https://vishwak-properties-git-main-gokuld019s-projects.vercel.app",
+      "http://localhost:3000"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
-app.options("*", cors()); // ⭐ Important
-
-app.use(express.json());
 // =========================================================
 // STATIC FILES (UPLOADS)
 // =========================================================
