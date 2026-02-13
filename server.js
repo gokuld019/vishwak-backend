@@ -50,32 +50,13 @@ app.use(cookieParser());
 // =========================================================
 app.use(
   cors({
-    origin: function (origin, callback) {
-
-      // Allow requests without origin (Postman, server calls)
-      if (!origin) return callback(null, true);
-
-      // Allow localhost (development)
-      if (
-        origin.includes("localhost") ||
-        origin.includes("127.0.0.1")
-      ) {
-        return callback(null, true);
-      }
-
-      // Allow all Vercel deployments
-      if (origin.includes(".vercel.app")) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: "https://vishwak-properties.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.use(express.json());
 // =========================================================
 // STATIC FILES (UPLOADS)
 // =========================================================
