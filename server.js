@@ -1,5 +1,6 @@
 // server.js - Vishwak Properties Backend
 require("dotenv").config();
+
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -8,7 +9,7 @@ const path = require("path");
 // Database
 const sequelize = require("./config/db");
 
-// Import Routes
+// ================= IMPORT ROUTES =================
 const authRoutes = require("./routes/auth");
 const bannerRoutes = require("./routes/bannerRoutes");
 const projectRoutes = require("./routes/projectRoutes");
@@ -34,6 +35,7 @@ const projectStatsRoutes = require("./routes/projectStatsRoutes");
 const projectMediaRoutes = require("./routes/projectMediaRoutes");
 const careerRoutes = require("./routes/careerRoutes");
 const contactFormRoutes = require("./routes/contactFormRoutes");
+
 const app = express();
 
 // =========================================================
@@ -44,24 +46,38 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // =========================================================
-// CORS CONFIG (Frontend: localhost:3000)
+// CORS CONFIG (IMPORTANT FIX)
 // =========================================================
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://vishwak-properties-8opx-git-main-gokuld019s-projects.vercel.app",
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: function (origin, callback) {
+      // allow requests with no origin (mobile apps, postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(new Error("CORS not allowed"), false);
+      }
+
+      return callback(null, true);
+    },
     credentials: true,
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // =========================================================
-// STATIC FILES WITH CORS FIX FOR CINEMATIC 360°
+// STATIC FILES (UPLOADS)
 // =========================================================
-// IMPORTANT: put BEFORE routes
 app.use("/uploads", (req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // allow image fetch
-  res.header("Cross-Origin-Resource-Policy", "cross-origin"); // required for some browsers
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Cross-Origin-Resource-Policy", "cross-origin");
   next();
 });
 
@@ -72,7 +88,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // =========================================================
 app.use("/api/auth", authRoutes);
 app.use("/api/banners", bannerRoutes);
-app.use("/api/projects/menu", projectMenuRoutes); // MUST BE ABOVE
+app.use("/api/projects/menu", projectMenuRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/amenities", amenityRoutes);
 app.use("/api/articles", articleRoutes);
@@ -118,9 +134,9 @@ const PORT = process.env.PORT || 5000;
     await sequelize.sync();
     console.log("✅ Models synced");
 
-    app.listen(PORT, () =>
-      console.log(`🚀 Server running at http://localhost:${PORT}`)
-    );
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   } catch (err) {
     console.error("❌ Startup error:", err.message);
     process.exit(1);
