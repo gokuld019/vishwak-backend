@@ -50,11 +50,13 @@ app.use(cookieParser());
 // =========================================================
 app.use(
   cors({
-    origin: "https://vishwak-properties.vercel.app",
+    origin: ["https://vishwak-properties.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors()); // ⭐ Important
 
 app.use(express.json());
 // =========================================================
