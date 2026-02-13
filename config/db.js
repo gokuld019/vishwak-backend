@@ -1,14 +1,5 @@
-// =========================================================
-// config/db.js
-// Sequelize Database Configuration
-// Works for Local (XAMPP) + Aiven (Production)
-// =========================================================
-
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
-
-// Detect environment
-const isProduction = process.env.NODE_ENV === "production";
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -20,21 +11,11 @@ const sequelize = new Sequelize(
     dialect: "mysql",
     logging: false,
 
-    // ✅ SSL only for Aiven / Production
-    dialectOptions: isProduction
-      ? {
-          ssl: {
-            require: true,
-            rejectUnauthorized: false,
-          },
-        }
-      : {},
-
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 60000,
-      idle: 10000,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
     },
   }
 );
