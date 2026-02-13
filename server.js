@@ -46,25 +46,29 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // =========================================================
-// CORS CONFIG (IMPORTANT FIX)
+// CORS CONFIG (FINAL PRODUCTION VERSION)
 // =========================================================
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
-  "https://vishwak-properties-8opx-git-main-gokuld019s-projects.vercel.app",
-];
-
 app.use(
   cors({
     origin: function (origin, callback) {
-      // allow requests with no origin (mobile apps, postman)
+
+      // Allow requests without origin (Postman, server calls)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.indexOf(origin) === -1) {
-        return callback(new Error("CORS not allowed"), false);
+      // Allow localhost (development)
+      if (
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1")
+      ) {
+        return callback(null, true);
       }
 
-      return callback(null, true);
+      // Allow all Vercel deployments
+      if (origin.includes(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -116,7 +120,10 @@ app.use("/api/contact-form", contactFormRoutes);
 // HEALTH CHECK
 // =========================================================
 app.get("/", (req, res) => {
-  res.json({ status: "success", message: "Backend Running 🚀" });
+  res.json({
+    status: "success",
+    message: "Backend Running 🚀",
+  });
 });
 
 // =========================================================
@@ -137,6 +144,7 @@ const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
+
   } catch (err) {
     console.error("❌ Startup error:", err.message);
     process.exit(1);
