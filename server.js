@@ -3,7 +3,8 @@ require("dotenv").config();
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
+const cors = require('cors');
+
 const path = require("path");
 
 // Database
@@ -53,14 +54,11 @@ app.use(
     origin: [
       "https://vishwak-properties.vercel.app",
       "https://vishwak-properties-git-main-gokuld019s-projects.vercel.app",
+      "https://vishwak-properties-8opx.vercel.app",   // <--- idha add pannu
       "http://localhost:3000"
     ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
-
 // =========================================================
 // STATIC FILES (UPLOADS)
 // =========================================================
