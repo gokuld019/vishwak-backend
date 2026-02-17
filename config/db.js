@@ -12,7 +12,8 @@ const sequelize = new Sequelize(
     logging: false,
 
     dialectOptions: {
-      ssl: false, // ✅ IMPORTANT FIX
+      ssl: false,
+      connectTimeout: 60000, // waits longer before timeout
     },
 
     define: {
