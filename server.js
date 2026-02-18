@@ -3,8 +3,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const cors = require('cors');
-
+const cors = require("cors");
 const path = require("path");
 
 // Database
@@ -54,11 +53,12 @@ app.use(
     origin: [
       "https://vishwak-properties.vercel.app",
       "https://vishwak-properties-git-main-gokuld019s-projects.vercel.app",
-      "https://vishwak-properties-8opx.vercel.app",   // <--- idha add pannu
-      "http://localhost:3000"
+      "https://vishwak-properties-8opx.vercel.app",
+      "http://localhost:3000",
     ],
   })
 );
+
 // =========================================================
 // STATIC FILES (UPLOADS)
 // =========================================================
@@ -121,7 +121,10 @@ const PORT = process.env.PORT || 5000;
     console.log("✅ MySQL connected");
 
     console.log("🔄 Syncing models...");
-    await sequelize.sync();
+
+    // ✅ TEMPORARY CHANGE (ONLY FOR ADDING NEW COLUMN)
+    await sequelize.sync({ alter: true });
+
     console.log("✅ Models synced");
 
     app.listen(PORT, () => {

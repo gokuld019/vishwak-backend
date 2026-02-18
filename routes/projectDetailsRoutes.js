@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
 
+/* =====================================================
+   IMPORT CONTROLLER FUNCTIONS
+===================================================== */
 const {
   getProjectDetails,
   createProjectDetails,
@@ -10,6 +13,7 @@ const {
   getProjectMenu,
   getOngoingProjects,
   getCompletedProjects,
+  getProjectsByCategory,   // ✅ IMPORTANT (ADDED)
 } = require("../controllers/projectDetailsController");
 
 /* =====================================================
@@ -23,6 +27,11 @@ router.get("/menu", getProjectMenu);
 ===================================================== */
 router.get("/ongoing", getOngoingProjects);
 router.get("/completed", getCompletedProjects);
+
+/* =====================================================
+   PROJECTS BY CATEGORY (FOR ENQUIRY DROPDOWN)
+===================================================== */
+router.get("/by-category", getProjectsByCategory);
 
 /* =====================================================
    RECENT PROJECTS

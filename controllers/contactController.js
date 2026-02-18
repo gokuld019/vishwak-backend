@@ -4,7 +4,7 @@ const Contact = require('../models/Contact');
 // PUBLIC: submit contact/enquiry
 exports.submitContact = async (req, res) => {
   try {
-    const { name, email, phone, inquiry, message } = req.body;
+const { name, email, phone, inquiry, projectId, message } = req.body;
 
     if (!name || !email || !phone) {
       return res
@@ -13,12 +13,14 @@ exports.submitContact = async (req, res) => {
     }
 
     const contact = await Contact.create({
-      name,
-      email,
-      phone,
-      inquiry,
-      message,
-    });
+  name,
+  email,
+  phone,
+  inquiry,
+  projectId,   // ✅ added
+  message,
+});
+
 
     res.status(201).json({
       message: 'Enquiry submitted successfully',

@@ -1,5 +1,5 @@
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db"); // ✅ THIS WAS MISSING
+const sequelize = require("../config/db");
 
 const ProjectDetails = sequelize.define(
   "ProjectDetails",
@@ -33,7 +33,6 @@ const ProjectDetails = sequelize.define(
       type: DataTypes.STRING,
     },
 
-    // ⭐ SEPARATE HERO BANNERS
     heroImageDesktop: {
       type: DataTypes.STRING,
     },
@@ -62,6 +61,22 @@ const ProjectDetails = sequelize.define(
     numberOfUnits: {
       type: DataTypes.STRING,
     },
+
+    /* ✅ NEW FIELDS ADDED */
+
+    pricePerSqft: {
+      type: DataTypes.STRING,
+    },
+
+    completionPercentage: {
+      type: DataTypes.INTEGER,
+    },
+
+    reraNumber: {
+      type: DataTypes.STRING,
+    },
+
+    /* ====================== */
 
     topTitle: {
       type: DataTypes.STRING,

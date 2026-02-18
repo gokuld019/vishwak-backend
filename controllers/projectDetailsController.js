@@ -230,3 +230,23 @@ exports.getOngoingProjects = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+exports.getProjectsByCategory = async (req, res) => {
+  try {
+    const { category } = req.query;
+
+    const projects = await ProjectDetails.findAll({
+      where: {
+        category: category,
+      },
+      attributes: ["projectId", "name"],
+      order: [["name", "ASC"]],
+    });
+
+    res.json(projects);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

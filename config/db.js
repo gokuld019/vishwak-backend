@@ -13,11 +13,7 @@ const sequelize = new Sequelize(
 
     dialectOptions: {
       ssl: false,
-      connectTimeout: 60000, // waits longer before timeout
-    },
-
-    define: {
-      timestamps: false,
+      connectTimeout: 60000,
     },
 
     timezone: "+05:30",
