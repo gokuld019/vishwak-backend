@@ -98,7 +98,7 @@ app.use("/api/gallery", galleryRoutes);
 app.use("/api/project-media", projectMediaRoutes);
 app.use("/api/careers", careerRoutes);
 app.use("/api/contact-form", contactFormRoutes);
-
+app.use("/api/chat", require("./routes/chat"));
 // =========================================================
 // HEALTH CHECK
 // =========================================================
