@@ -46,7 +46,7 @@ const ProjectDetails = sequelize.define(
     },
 
     status: {
-      type: DataTypes.ENUM("ongoing", "completed"),
+      type: DataTypes.STRING,
       defaultValue: "ongoing",
     },
 
@@ -62,8 +62,6 @@ const ProjectDetails = sequelize.define(
       type: DataTypes.STRING,
     },
 
-    /* ✅ NEW FIELDS ADDED */
-
     pricePerSqft: {
       type: DataTypes.STRING,
     },
@@ -75,8 +73,6 @@ const ProjectDetails = sequelize.define(
     reraNumber: {
       type: DataTypes.STRING,
     },
-
-    /* ====================== */
 
     topTitle: {
       type: DataTypes.STRING,
@@ -111,6 +107,21 @@ const ProjectDetails = sequelize.define(
     },
 
     thumbnail: {
+      type: DataTypes.STRING,
+    },
+
+    // ===============================
+    // SITE PLAN SECTION (NEW)
+    // ===============================
+    sitePlanHeading: {
+      type: DataTypes.STRING,
+    },
+
+    sitePlanImage: {
+      type: DataTypes.STRING,
+    },
+
+    plotAreaStatementImage: {
       type: DataTypes.STRING,
     },
   },
