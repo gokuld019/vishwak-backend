@@ -9,7 +9,16 @@ const path = require("path");
 // Database
 const sequelize = require("./config/db");
 
-// ================= IMPORT ROUTES =================
+/* =========================================================
+   🔥 IMPORTANT: IMPORT ALL MODELS BEFORE SYNC
+   ========================================================= */
+require("./models/ProjectDetails");
+require("./models/AvailablePlot");
+require("./models/ProjectNearbyPlace");   // ✅ ADDED THIS LINE
+
+/* =========================================================
+   IMPORT ROUTES
+   ========================================================= */
 const authRoutes = require("./routes/auth");
 const bannerRoutes = require("./routes/bannerRoutes");
 const projectRoutes = require("./routes/projectRoutes");
@@ -35,19 +44,20 @@ const projectStatsRoutes = require("./routes/projectStatsRoutes");
 const projectMediaRoutes = require("./routes/projectMediaRoutes");
 const careerRoutes = require("./routes/careerRoutes");
 const contactFormRoutes = require("./routes/contactFormRoutes");
+const availablePlotRoutes = require("./routes/availablePlotRoutes");
 
 const app = express();
 
-// =========================================================
-// GLOBAL MIDDLEWARE
-// =========================================================
+/* =========================================================
+   GLOBAL MIDDLEWARE
+   ========================================================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// =========================================================
-// CORS CONFIG (PRODUCTION SAFE)
-// =========================================================
+/* =========================================================
+   CORS CONFIG
+   ========================================================= */
 app.use(
   cors({
     origin: [
@@ -59,9 +69,9 @@ app.use(
   })
 );
 
-// =========================================================
-// STATIC FILES (UPLOADS)
-// =========================================================
+/* =========================================================
+   STATIC FILES
+   ========================================================= */
 app.use("/uploads", (req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Cross-Origin-Resource-Policy", "cross-origin");
@@ -70,9 +80,9 @@ app.use("/uploads", (req, res, next) => {
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// =========================================================
-// API ROUTES
-// =========================================================
+/* =========================================================
+   API ROUTES
+   ========================================================= */
 app.use("/api/auth", authRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/projects/menu", projectMenuRoutes);
@@ -99,9 +109,11 @@ app.use("/api/project-media", projectMediaRoutes);
 app.use("/api/careers", careerRoutes);
 app.use("/api/contact-form", contactFormRoutes);
 app.use("/api/chat", require("./routes/chat"));
-// =========================================================
-// HEALTH CHECK
-// =========================================================
+app.use("/api/available-plots", availablePlotRoutes);
+
+/* =========================================================
+   HEALTH CHECK
+   ========================================================= */
 app.get("/", (req, res) => {
   res.json({
     status: "success",
@@ -109,9 +121,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// =========================================================
-// START SERVER
-// =========================================================
+/* =========================================================
+   START SERVER
+   ========================================================= */
 const PORT = process.env.PORT || 5000;
 
 (async () => {
@@ -121,10 +133,7 @@ const PORT = process.env.PORT || 5000;
     console.log("✅ MySQL connected");
 
     console.log("🔄 Syncing models...");
-
-    // ✅ TEMPORARY CHANGE (ONLY FOR ADDING NEW COLUMN)
-    await sequelize.sync({ alter: true });
-
+    await sequelize.sync();
     console.log("✅ Models synced");
 
     app.listen(PORT, () => {

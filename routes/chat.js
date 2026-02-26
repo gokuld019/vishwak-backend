@@ -1,318 +1,280 @@
 const express = require("express");
 const router = express.Router();
 const sequelize = require("../config/db");
+const axios = require("axios");
+const AvailablePlot = require("../models/AvailablePlot");
+const ProjectNearbyPlace = require("../models/ProjectNearbyPlace");
 require("dotenv").config();
 
-/* ───────────────────────────────────────────
-   BUTTON DEFINITIONS
-─────────────────────────────────────────── */
+/* ───────── BUTTONS ───────── */
+
 const MAIN_MENU_BUTTONS = [
-  { label: "🏗 View Plots",      value: "show plots"      },
-  { label: "🏠 View Villas",     value: "show villas"     },
+  { label: "🏗 View Plots", value: "show plots" },
+  { label: "🏠 View Villas", value: "show villas" },
   { label: "🏢 View Apartments", value: "show apartments" },
-  { label: "📞 Contact Us",      value: "contact"         },
+  { label: "📞 Contact Us", value: "contact" },
 ];
 
-const PROJECT_ACTION_BUTTONS = (projectName) => [
-  { label: "💰 Price Details",  value: `price of ${projectName}` },
-  { label: "📊 EMI Calculator", value: `emi for ${projectName}`  },
-  { label: "📞 Contact Agent",  value: "contact"                 },
-  { label: "🔙 Main Menu",      value: "menu"                    },
-];
-
-const AFTER_CONTACT_BUTTONS = [
+const PROJECT_ACTION_BUTTONS = (name) => [
+  { label: "💰 Price Details", value: `price of ${name}` },
+  { label: "📊 EMI Calculator", value: `emi for ${name}` },
+  { label: "📞 Contact Agent", value: "contact" },
   { label: "🔙 Main Menu", value: "menu" },
 ];
 
-/* ───────────────────────────────────────────
-   POST /api/chat
-─────────────────────────────────────────── */
+/* ───────── MAIN ROUTE ───────── */
+
 router.post("/", async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message) return res.status(400).json({ error: "No message provided" });
+    if (!message) return send(res, "Please enter a message.", []);
 
-    const userQuery = message.toLowerCase().trim();
-    let reply   = "";
-    let buttons = [];
+    const query = message.toLowerCase().trim();
+    const [projects] = await sequelize.query("SELECT * FROM project_details");
 
-    const [allProjects] = await sequelize.query("SELECT * FROM project_details");
+    /* ───────── GREETING ───────── */
 
-    /* ── MAIN MENU trigger ── */
-    if (/^(menu|main menu|start|restart|back)$/i.test(userQuery)) {
-      reply   = "🏠 Welcome back! What would you like to explore?";
-      buttons = MAIN_MENU_BUTTONS;
-      return sendResponse(res, reply, buttons);
-    }
+   /* ───────── GREETING ───────── */
 
-    /* ── GOOD MORNING ── */
-    if (/good\s*morning/i.test(userQuery)) {
-      reply = `🌅 <strong>Good Morning!</strong> Hope you're having a wonderful start to your day! ☀️<br><br>
-               I'm <strong>Vishwak</strong>, your Property Assistant at <strong>Vishwak Properties</strong>.<br><br>
-               Ready to help you find your dream property today! How can I assist you? 😊`;
-      buttons = MAIN_MENU_BUTTONS;
-      return sendResponse(res, reply, buttons);
-    }
-
-    /* ── GOOD AFTERNOON ── */
-    if (/good\s*afternoon/i.test(userQuery)) {
-      reply = `☀️ <strong>Good Afternoon!</strong> Hope you're having a productive and pleasant day! 😊<br><br>
-               I'm <strong>Vishwak</strong>, your Property Assistant at <strong>Vishwak Properties</strong>.<br><br>
-               Let's make your afternoon even better — shall we find your perfect property? 🏡`;
-      buttons = MAIN_MENU_BUTTONS;
-      return sendResponse(res, reply, buttons);
-    }
-
-    /* ── GOOD EVENING ── */
-    if (/good\s*evening/i.test(userQuery)) {
-      reply = `🌇 <strong>Good Evening!</strong> Hope you had a great day! 😊<br><br>
-               I'm <strong>Vishwak</strong>, your Property Assistant at <strong>Vishwak Properties</strong>.<br><br>
-               A perfect time to explore your dream home. How can I help you this evening? 🏡`;
-      buttons = MAIN_MENU_BUTTONS;
-      return sendResponse(res, reply, buttons);
-    }
-
-    /* ── GOOD NIGHT ── */
-    if (/good\s*night/i.test(userQuery)) {
-      reply = `🌙 <strong>Good Night!</strong> Thank you for visiting <strong>Vishwak Properties</strong>. 😊<br><br>
-               Sweet dreams! 🌟 We'll be right here whenever you're ready to find your dream property. 🏡`;
-      buttons = [];
-      return sendResponse(res, reply, buttons);
-    }
-
-    /* ── GENERIC GREETING (hi / hello / hey) ── */
-    /* ── GENERIC GREETING (hi / hello / hey) ── */
-if (/^(hi|hello|hey)\b/i.test(userQuery)) {
-  const hour = new Date().getHours();
-
-  let timeEmoji, timeGreet, timeNote;
-  if (hour >= 5 && hour < 12) {
-    timeEmoji = "🌅"; timeGreet = "Good Morning";
-    timeNote  = "How are you doing? Hope your morning is going great! ☀️";
-  } else if (hour >= 12 && hour < 17) {
-    timeEmoji = "☀️"; timeGreet = "Good Afternoon";
-    timeNote  = "How are you? Hope you're having a wonderful afternoon! 😊";
-  } else if (hour >= 17 && hour < 21) {
-    timeEmoji = "🌇"; timeGreet = "Good Evening";
-    timeNote  = "How's your day been? Hope it was amazing! 🌟";
-  } else {
-    timeEmoji = "👋"; timeGreet = "Hey";
-    timeNote  = "How are you doing tonight? Hope you're having a good one! 😊";
-  }
-
-  reply = `${timeEmoji} <strong>${timeGreet}!</strong> Hi there, welcome to <strong>Vishwak Properties</strong>! 😊<br><br>
-           ${timeNote}<br><br>
-           I'm <strong>Vishwak</strong>, your personal property assistant — here to help you find your perfect home! 🏡<br><br>
-           What can I do for you today?`;
-  buttons = MAIN_MENU_BUTTONS;
-  return sendResponse(res, reply, buttons);
+if (/^(hi|hello|hey)$/i.test(query)) {
+  return send(
+    res,
+    "👋 Hello! Welcome to Vishwak Properties. How can I help you today?",
+    MAIN_MENU_BUTTONS
+  );
 }
 
-    /* ── SHOW CATEGORY (button click: "show plots" etc.) ── */
-    const showMatch = userQuery.match(/^show\s+(plots?|villas?|apartments?)/i);
-    if (showMatch) {
-      const cat      = showMatch[1].toLowerCase().replace(/s$/, "");
-      const filtered = filterByCategory(allProjects, cat, "ongoing");
+if (/good morning/i.test(query)) {
+  return send(
+    res,
+    "🌅 Good Morning! Hope you're having a wonderful day. How can I assist you with your property search?",
+    MAIN_MENU_BUTTONS
+  );
+}
 
-      if (filtered.length === 0) {
-        reply   = `😔 No ongoing ${cat}s available right now. Check back soon!`;
-        buttons = MAIN_MENU_BUTTONS;
-      } else {
-        reply  = `🏢 <strong>Ongoing ${cap(cat)}s</strong><br><br>`;
-        reply += filtered.map((p, i) =>
-          `${i + 1}. <strong>${p.name}</strong><br>📍 ${p.location}`
-        ).join("<br><br>");
-        reply += "<br><br>Tap a project name or choose an action:";
-        buttons = [
-          ...filtered.slice(0, 3).map(p => ({ label: p.name, value: `details of ${p.name}` })),
-          { label: "🔙 Main Menu", value: "menu" },
-        ];
-      }
-      return sendResponse(res, reply, buttons);
-    }
+if (/good afternoon/i.test(query)) {
+  return send(
+    res,
+    "☀️ Good Afternoon! Looking for your dream property today?",
+    MAIN_MENU_BUTTONS
+  );
+}
 
-    /* ── COUNT QUERY ── */
-    const countMatch = userQuery.match(
-      /(?:how many|count|total)\s+(plots?|villas?|apartments?)/i
-    );
-    if (!reply && countMatch) {
-      const cat      = countMatch[1].toLowerCase().replace(/s$/, "");
-      const filtered = filterByCategory(allProjects, cat, "ongoing");
-      reply   = `📊 We currently have <strong>${filtered.length}</strong> ongoing ${cat}s available.`;
-      buttons = MAIN_MENU_BUTTONS;
-    }
+if (/good evening/i.test(query)) {
+  return send(
+    res,
+    "🌇 Good Evening! I'm here to help you explore the best properties.",
+    MAIN_MENU_BUTTONS
+  );
+}
 
-    /* ── STATUS + CATEGORY ── */
-    const statusMatch = userQuery.match(
-      /(ongoing|completed|sold out|sold_out)\s+(plots?|villas?|apartments?)/i
-    );
-    if (!reply && statusMatch) {
-      let status = statusMatch[1].toLowerCase();
-      const cat  = statusMatch[2].toLowerCase().replace(/s$/, "");
-      if (status === "sold out") status = "sold_out";
-      const filtered = filterByCategory(allProjects, cat, status);
-      if (filtered.length === 0) {
-        reply = `No ${status} ${cat}s available.`;
-      } else {
-        reply  = `<strong>${status.toUpperCase()} ${cap(cat)}s</strong><br><br>`;
-        reply += filtered.map((p, i) =>
-          `${i + 1}. <strong>${p.name}</strong><br>📍 ${p.location}`
-        ).join("<br><br>");
-      }
-      buttons = MAIN_MENU_BUTTONS;
-    }
+if (/good night/i.test(query)) {
+  return send(
+    res,
+    "🌙 Good Night! Feel free to explore our projects anytime. I'm here to assist you.",
+    MAIN_MENU_BUTTONS
+  );
+}
 
-    /* ── CATEGORY LIST (typed naturally) ── */
-    if (!reply) {
-      const catMatch = userQuery.match(/\b(apartments?|villas?|plots?)\b/i);
-      if (catMatch) {
-        const cat      = catMatch[0].toLowerCase().replace(/s$/, "");
-        const filtered = filterByCategory(allProjects, cat, "ongoing");
-        if (filtered.length > 0) {
-          reply  = `🏢 <strong>Ongoing ${cap(cat)}s</strong><br><br>`;
-          reply += filtered.map((p, i) =>
-            `${i + 1}. <strong>${p.name}</strong><br>📍 ${p.location}`
-          ).join("<br><br>");
-          buttons = [
-            ...filtered.slice(0, 3).map(p => ({ label: p.name, value: `details of ${p.name}` })),
-            { label: "🔙 Main Menu", value: "menu" },
-          ];
-        }
-      }
-    }
+    /* ───────── AVAILABLE PLOTS COUNT ───────── */
 
-    /* ── SMART PROJECT MATCH ── */
-    if (!reply) {
-      const matched = findProjectByName(allProjects, userQuery);
-      if (matched) {
-        const pricePerSqft   = parseFloat(matched.pricePerSqft || 0);
-        const estimatedTotal = pricePerSqft * 600;
-
-        if (/price|cost|rate|amount/i.test(userQuery)) {
-          reply = `💰 <strong>${matched.name} – Pricing</strong><br><br>
-                   Price per Sq.ft: <strong>₹${pricePerSqft}</strong><br>
-                   Status: ${matched.status}<br><br>
-                   Would you like an EMI calculation?`;
-          buttons = PROJECT_ACTION_BUTTONS(matched.name);
-        } else if (/emi|loan|monthly/i.test(userQuery)) {
-          reply   = emiReply(matched.name, estimatedTotal);
-          buttons = PROJECT_ACTION_BUTTONS(matched.name);
-        } else {
-          reply   = formatProjectDetails(matched);
-          buttons = PROJECT_ACTION_BUTTONS(matched.name);
-        }
-      }
-    }
-
-    /* ── GENERAL EMI ── */
-    let amountMatch;
     if (
-      !reply &&
-      userQuery.match(/(emi|loan|monthly)/i) &&
-      (amountMatch = userQuery.match(/(\d+)\s*(crore|lakh)/i))
+      /(how many|total|count|number of)/i.test(query) &&
+      /(plot|plots)/i.test(query)
     ) {
-      const amount = amountMatch[2] === "crore"
-        ? parseInt(amountMatch[1]) * 10_000_000
-        : parseInt(amountMatch[1]) * 100_000;
-      reply   = emiReply("Your Property", amount);
-      buttons = MAIN_MENU_BUTTONS;
+      const totalPlots = await AvailablePlot.count({
+        where: { projectId: 1 },
+      });
+
+      return send(
+        res,
+        `📊 <strong>Total Available Plots:</strong> ${totalPlots}`,
+        MAIN_MENU_BUTTONS
+      );
     }
 
-    /* ── CONTACT ── */
-    if (!reply && /(contact|phone|email|call|agent)/i.test(userQuery)) {
-      reply = `📞 <strong>Contact Vishwak Properties</strong><br><br>
-               📱 Phone: <strong>+91 98765 43210</strong><br>
-               📧 Email: <strong>sales@vishwakproperties.com</strong><br><br>
-               Our team will get back to you shortly! 🙏`;
-      buttons = AFTER_CONTACT_BUTTONS;
+    /* ───────── PROJECT MATCH ───────── */
+
+    const matched = findProjectByName(projects, query);
+
+    if (matched) {
+      const price = matched.pricePerSqft || 0;
+
+      /* ───────── AVAILABLE PLOTS LIST ───────── */
+
+      if (/available|vacant/i.test(query) && /plot/i.test(query)) {
+        const plots = await AvailablePlot.findAll({
+          where: { projectId: matched.projectId },
+          order: [["plotNumber", "ASC"]],
+        });
+
+        if (!plots.length) {
+          return send(
+            res,
+            "No available plots currently.",
+            PROJECT_ACTION_BUTTONS(matched.name)
+          );
+        }
+
+        let reply = `🏡 <strong>Available Plots – ${matched.name}</strong><br><br>`;
+
+            plots.forEach(plot => {
+            reply += `• Plot No: <strong>${plot.plotNumber}</strong> (${plot.sqft} sq.ft)<br>`;
+        });
+
+        if (plots.length > 20) {
+          reply += `<br>Showing first 20 plots. Contact us for full list.`;
+        }
+
+        return send(res, reply, PROJECT_ACTION_BUTTONS(matched.name));
+      }
+
+      /* ───────── NEARBY PLACES ───────── */
+
+      if (/nearby|distance|school|college|hospital|railway|bus|metro|it park/i.test(query)) {
+
+        let typeFilter = null;
+
+        if (/school/i.test(query)) typeFilter = "school";
+        if (/college/i.test(query)) typeFilter = "college";
+        if (/hospital/i.test(query)) typeFilter = "hospital";
+        if (/railway/i.test(query)) typeFilter = "railway";
+        if (/bus/i.test(query)) typeFilter = "bus";
+        if (/metro/i.test(query)) typeFilter = "metro";
+        if (/it park/i.test(query)) typeFilter = "it_park";
+
+        let whereCondition = { projectId: matched.projectId };
+        if (typeFilter) whereCondition.type = typeFilter;
+
+        const nearby = await ProjectNearbyPlace.findAll({
+          where: whereCondition,
+          order: [["distance_km", "ASC"]],
+        });
+
+        if (!nearby.length) {
+          return send(res, "No nearby information available.", PROJECT_ACTION_BUTTONS(matched.name));
+        }
+
+        let reply = `📍 <strong>Nearby – ${matched.name}</strong><br><br>`;
+
+        nearby.forEach((place) => {
+          reply += `• ${place.name} – ${place.distance_km} km`;
+          if (place.travel_time_minutes)
+            reply += ` (${place.travel_time_minutes} mins)`;
+          reply += `<br>`;
+        });
+
+        return send(res, reply, PROJECT_ACTION_BUTTONS(matched.name));
+      }
+
+      /* ───────── PRICE ───────── */
+
+      if (/price|cost|rate/i.test(query)) {
+        return send(
+          res,
+          `💰 <strong>${matched.name}</strong><br><br>Price per Sq.ft: ₹${price}`,
+          PROJECT_ACTION_BUTTONS(matched.name)
+        );
+      }
+
+      /* ───────── EMI ───────── */
+
+      if (/emi|loan/i.test(query)) {
+        return send(
+          res,
+          emiReply(matched.name, price * 600),
+          PROJECT_ACTION_BUTTONS(matched.name)
+        );
+      }
+
+      /* ───────── DEFAULT PROJECT DETAILS ───────── */
+
+      return send(
+        res,
+        `🏠 <strong>${matched.name}</strong><br><br>
+         📍 ${matched.location}<br>
+         🏷 ${matched.category}<br>
+         📊 ${matched.status}<br>
+         💰 ₹${price}/sq.ft`,
+        PROJECT_ACTION_BUTTONS(matched.name)
+      );
     }
 
-    /* ── FALLBACK ── */
-    /* ── FALLBACK ── */
-if (!reply) {
-  const friendlyFallbacks = [
-    "😊 I'm not sure I understood that fully, but I'm here to help! Feel free to explore the options below or ask me anything about our properties. 🏡",
-    "🙂 Hmm, I didn't quite get that — no worries though! You can pick an option below or ask me about plots, villas, apartments, pricing, or EMI. I'm happy to help!",
-    "💬 Thanks for reaching out! I may have missed that one. Try choosing from the options below — I'm always here for you! 😊",
-  ];
-  reply   = friendlyFallbacks[Math.floor(Math.random() * friendlyFallbacks.length)];
-  buttons = MAIN_MENU_BUTTONS;
-}
+    /* ───────── AI FALLBACK ───────── */
 
-    return sendResponse(res, reply, buttons);
+    const aiReply = await callGemini(message);
+    return send(res, aiReply, MAIN_MENU_BUTTONS);
 
-  } catch (error) {
-    console.error("Chat API Error:", error);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-/* ───────────────────────────────────────────
-   HELPERS
-─────────────────────────────────────────── */
-function sendResponse(res, reply, buttons = []) {
+/* ───────── GEMINI FUNCTION ───────── */
+
+async function callGemini(userMessage) {
+  try {
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        contents: [
+          {
+            parts: [
+              { text: "You are Vishwak, a professional real estate assistant in Chennai." },
+              { text: userMessage }
+            ]
+          }
+        ]
+      }
+    );
+
+    return response.data.candidates?.[0]?.content?.parts?.[0]?.text
+      || "AI returned empty response.";
+
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+    return "⚠️ AI service unavailable.";
+  }
+}
+
+/* ───────── HELPERS ───────── */
+
+function send(res, reply, buttons = []) {
   return res.json({
     choices: [{ message: { content: reply } }],
     buttons,
   });
 }
 
-function cap(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function findProjectByName(projects, search) {
+  const lowerSearch = search.toLowerCase();
+
+  return projects.find(p => {
+    const name = p.name.toLowerCase();
+
+    // Direct full name match
+    if (lowerSearch.includes(name)) return true;
+
+    // Partial word match (aira should match Aira Avenue)
+    const nameWords = name.split(" ");
+    return nameWords.some(word => lowerSearch.includes(word));
+  });
 }
 
-function emiReply(name, totalAmount) {
-  const loanAmount   = totalAmount * 0.8;
-  const interestRate = 8.5;
-  const years        = 20;
-  const monthlyRate  = interestRate / 100 / 12;
-  const months       = years * 12;
+function emiReply(name, total) {
+  const loan = total * 0.8;
+  const r = 8.5 / 100 / 12;
+  const n = 20 * 12;
   const emi =
-    (loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, months))) /
-    (Math.pow(1 + monthlyRate, months) - 1);
+    (loan * r * Math.pow(1 + r, n)) /
+    (Math.pow(1 + r, n) - 1);
 
-  return `📊 <strong>EMI Calculation – ${name}</strong><br><br>
-          Loan Amount (80%): <strong>₹${Math.round(loanAmount).toLocaleString()}</strong><br>
-          Interest Rate: <strong>8.5% p.a.</strong><br>
-          Tenure: <strong>20 years</strong><br><br>
-          💰 Monthly EMI: <strong>₹${Math.round(emi).toLocaleString()}</strong>`;
-}
-
-function filterByCategory(projects, category, status = "ongoing") {
-  return projects.filter(
-    (p) =>
-      p.category?.toLowerCase().includes(category) &&
-      p.status?.toLowerCase() === status
-  );
-}
-
-function findProjectByName(projects, searchTerm) {
-  searchTerm = searchTerm
-    .replace(/price|cost|emi|loan|monthly|rate|amount|details|about|of|what|is|show/gi, "")
-    .trim();
-  let bestMatch = null;
-  let highestScore = 0;
-  for (const project of projects) {
-    const name = project.name.toLowerCase();
-    let score = 0;
-    if (name.includes(searchTerm)) score += 50;
-    searchTerm.split(" ").forEach((sw) => {
-      if (name.includes(sw) && sw.length > 2) score += 10;
-    });
-    if (score > highestScore) {
-      highestScore = score;
-      bestMatch = project;
-    }
-  }
-  return highestScore > 10 ? bestMatch : null;
-}
-
-function formatProjectDetails(project) {
-  return `🏠 <strong>${project.name}</strong><br><br>
-          📍 Location: ${project.location}<br>
-          🏷 Type: ${project.category}<br>
-          📊 Status: ${project.status}<br>
-          💰 Price: <strong>₹${project.pricePerSqft}/sq.ft</strong>`;
+  return `📊 <strong>EMI for ${name}</strong><br><br>
+          Loan Amount: ₹${Math.round(loan).toLocaleString()}<br>
+          Interest: 8.5%<br>
+          Tenure: 20 Years<br><br>
+          💰 Monthly EMI: ₹${Math.round(emi).toLocaleString()}`;
 }
 
 module.exports = router;

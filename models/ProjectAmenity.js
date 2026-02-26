@@ -4,26 +4,30 @@ const sequelize = require("../config/db");
 const ProjectAmenity = sequelize.define(
   "ProjectAmenity",
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    id: { 
+      type: DataTypes.INTEGER, 
+      primaryKey: true, 
+      autoIncrement: true 
+    },
 
     projectId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
 
-    // "text" or "image"
     type: {
       type: DataTypes.STRING,
       allowNull: false,
+      defaultValue: "text", // Only text now
     },
 
     name: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
 
-    image: {
-      type: DataTypes.STRING,
+    description: {
+      type: DataTypes.TEXT,
       allowNull: true,
     },
   },

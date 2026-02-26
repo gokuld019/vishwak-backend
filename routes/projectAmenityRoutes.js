@@ -1,26 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middlewares/projectAmenityUpload");
 
 const {
-  addAllAmenities,
+  addAmenity,
   getAmenitiesByProject,
   updateAmenity,
   deleteAmenity,
 } = require("../controllers/projectamenityController");
 
-// CREATE (text + image amenities)
-router.post("/", upload.fields([{ name: "galleryImages" }]), addAllAmenities);
+// CREATE
+router.post("/", addAmenity);
 
-// READ (fetch by project id)
+// READ
 router.get("/:projectId", getAmenitiesByProject);
 
-// UPDATE (single amenity)
-router.put(
-  "/update/:id",
-  upload.single("image"),
-  updateAmenity
-);
+// UPDATE
+router.put("/:id", updateAmenity);
 
 // DELETE
 router.delete("/:id", deleteAmenity);
