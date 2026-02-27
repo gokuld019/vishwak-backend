@@ -131,12 +131,14 @@ exports.getRecentProjects = async (req, res) => {
 };
 
 /* =====================================================
-   GET COMPLETED PROJECTS
+   GET ONGOING PROJECTS — only status = "ongoing"
 ===================================================== */
-exports.getCompletedProjects = async (req, res) => {
+exports.getOngoingProjects = async (req, res) => {
   try {
     const projects = await ProjectDetails.findAll({
-      where: { status: "completed" },
+      where: {
+        status: "ongoing", // ✅ ONLY ongoing
+      },
       order: [["name", "ASC"]],
     });
 
@@ -147,14 +149,14 @@ exports.getCompletedProjects = async (req, res) => {
 };
 
 /* =====================================================
-   GET ONGOING PROJECTS
+   GET COMPLETED PROJECTS — everything except "ongoing"
 ===================================================== */
-exports.getOngoingProjects = async (req, res) => {
+exports.getCompletedProjects = async (req, res) => {
   try {
     const projects = await ProjectDetails.findAll({
       where: {
         status: {
-          [Op.in]: ["ongoing", "sold_out"],
+          [Op.ne]: "ongoing", // ✅ completed + sold_out + anything else
         },
       },
       order: [["name", "ASC"]],
@@ -174,7 +176,10 @@ exports.getProjectsByCategory = async (req, res) => {
     const { category } = req.query;
 
     const projects = await ProjectDetails.findAll({
-      where: { category },
+      where: { 
+        category,
+        status: "ongoing"   // ✅ only show ongoing projects
+      },
       attributes: ["projectId", "name", "status"],
       order: [["name", "ASC"]],
     });
