@@ -58,23 +58,37 @@ exports.getMediaByProject = async (req, res) => {
 // ================================
 exports.createMedia = async (req, res) => {
   try {
-    const { projectId } = req.body;
+    const { projectId, routeMap } = req.body;
 
-    const cleanedRouteMap = cleanMapInput(req.body.routeMap);
+    if (!projectId) {
+      return res.status(400).json({ error: "projectId required" });
+    }
 
-    const media = await ProjectMedia.create({
+    let data = {
       projectId,
-      routeMap: cleanedRouteMap, 
+      routeMap
+    };
 
-      cinematic360: req.files?.cinematic360
-        ? `/uploads/${req.files.cinematic360[0].filename}`
-        : null,
+    if (req.files?.cinematic360) {
+      data.cinematic360 =
+        "/uploads/projects/" + req.files.cinematic360[0].filename;
+    }
+
+    const existing = await ProjectMedia.findOne({
+      where: { projectId }
     });
 
-    res.json({ success: true, data: media });
+    if (existing) {
+      await existing.update(data);
+      return res.json({ message: "Media updated successfully" });
+    }
 
-  } catch (err) {
-    console.error("Error creating media:", err);
+    await ProjectMedia.create(data);
+
+    res.json({ message: "Media created successfully" });
+
+  } catch (error) {
+    console.error("Media save error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
@@ -88,25 +102,27 @@ exports.updateMedia = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const existing = await ProjectMedia.findOne({ where: { projectId } });
-    if (!existing) {
-      return res.status(404).json({ error: "Project media not found" });
-    }
-
-    const cleanedRouteMap = cleanMapInput(req.body.routeMap);
-
-    await existing.update({
-      cinematic360: req.files?.cinematic360
-        ? `/uploads/${req.files.cinematic360[0].filename}`
-        : existing.cinematic360,
-
-      routeMap: cleanedRouteMap || existing.routeMap,
+    const existing = await ProjectMedia.findOne({
+      where: { projectId }
     });
 
-    res.json({ success: true, data: existing });
+    if (!existing) {
+      return res.status(404).json({ error: "Media not found" });
+    }
 
-  } catch (err) {
-    console.error("Error updating media:", err);
+    let updateData = { routeMap: req.body.routeMap };
+
+    if (req.files?.cinematic360) {
+      updateData.cinematic360 =
+        "/uploads/projects/" + req.files.cinematic360[0].filename;
+    }
+
+    await existing.update(updateData);
+
+    res.json({ message: "Media updated successfully" });
+
+  } catch (error) {
+    console.error("Media update error:", error);
     res.status(500).json({ error: "Server error" });
   }
 };

@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getWhyByProject,
-  replaceWhyForProject,
+  getWhyPoints,
+  saveWhyPoints,
 } = require("../controllers/whyController");
 
-// GET why points for a project
-router.get("/:projectId", getWhyByProject);
+// GET why points by project
+router.get("/:projectId", getWhyPoints);
 
-// BULK REPLACE why points for a project
-router.post("/bulk/:projectId", replaceWhyForProject);
+// SAVE (create/update) why points
+router.post("/:projectId", saveWhyPoints);
 
 module.exports = router;

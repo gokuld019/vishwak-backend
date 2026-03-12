@@ -51,17 +51,24 @@ exports.addPriceList = async (req, res) => {
 // GET PRICE LIST
 exports.getPriceList = async (req, res) => {
   try {
-    const { projectId } = req.params;
+    const projectId = Number(req.params.projectId); // ✅ force number
+
+    console.log("Received projectId:", projectId);
+
+    if (!projectId) {
+      return res.status(400).json({ message: "Invalid projectId" });
+    }
 
     const list = await PriceList.findAll({
-      where: { projectId },
+      where: { projectId: projectId },
       order: [["id", "ASC"]],
     });
 
-    res.json({ priceList: list });
+    return res.json({ priceList: list });
+
   } catch (err) {
     console.error("Fetch error:", err);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -102,3 +109,5 @@ exports.deletePrice = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+

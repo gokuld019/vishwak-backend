@@ -3,13 +3,10 @@ const router = express.Router();
 
 const {
   getLocationData,
-  replaceLocationData,
+  saveLocationData,
 } = require("../controllers/locationController");
 
-// GET location data for a project
 router.get("/:projectId", getLocationData);
-
-// POST replace all location data for project
-router.post("/bulk/:projectId", replaceLocationData);
+router.post("/:projectId", saveLocationData);
 
 module.exports = router;

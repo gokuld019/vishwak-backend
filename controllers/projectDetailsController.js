@@ -12,11 +12,7 @@ exports.getProjectDetails = async (req, res) => {
       where: { projectId },
     });
 
-    if (!details) {
-      return res.json({});
-    }
-
-    res.json(details);
+    res.json(details || {});
   } catch (err) {
     console.error("Error fetching project details:", err);
     res.status(500).json({ error: "Server error" });
@@ -24,20 +20,19 @@ exports.getProjectDetails = async (req, res) => {
 };
 
 /* =====================================================
-   CREATE PROJECT DETAILS
+   CREATE OR UPDATE PROJECT DETAILS (WITH IMAGES)
 ===================================================== */
 exports.createProjectDetails = async (req, res) => {
   try {
-    if (!req.body.projectId || !req.body.name) {
-      return res.status(400).json({
-        error: "projectId and name are required",
-      });
+    const { projectId } = req.body;
+
+    if (!projectId) {
+      return res.status(400).json({ error: "projectId required" });
     }
 
-    let payload = { ...req.body };
+    let data = { ...req.body };
 
-    payload.status = req.body.status || "ongoing";
-
+    // 🔥 Handle uploaded images
     const imageFields = [
       "heroImageDesktop",
       "heroImageMobile",
@@ -52,21 +47,37 @@ exports.createProjectDetails = async (req, res) => {
 
     imageFields.forEach((field) => {
       if (req.files && req.files[field]) {
-        payload[field] = `/uploads/projects/${req.files[field][0].filename}`;
+        data[field] = `/uploads/projects/${req.files[field][0].filename}`;
       }
     });
 
-    const details = await ProjectDetails.create(payload);
+    const existing = await ProjectDetails.findOne({
+      where: { projectId },
+    });
 
-    res.json(details);
-  } catch (err) {
-    console.error("Error creating project details:", err);
+    if (existing) {
+      await existing.update(data);
+      return res.json({
+        message: "Project updated successfully",
+        data: existing,
+      });
+    }
+
+    const created = await ProjectDetails.create(data);
+
+    res.status(201).json({
+      message: "Project created successfully",
+      data: created,
+    });
+
+  } catch (error) {
+    console.error("Error saving project:", error);
     res.status(500).json({ error: "Server error" });
   }
 };
 
 /* =====================================================
-   UPDATE PROJECT DETAILS
+   UPDATE PROJECT DETAILS (PUT)
 ===================================================== */
 exports.updateProjectDetails = async (req, res) => {
   try {
@@ -81,8 +92,6 @@ exports.updateProjectDetails = async (req, res) => {
     }
 
     let updateData = { ...req.body };
-
-    updateData.status = req.body.status || existing.status;
 
     const imageFields = [
       "heroImageDesktop",
@@ -105,9 +114,10 @@ exports.updateProjectDetails = async (req, res) => {
     await existing.update(updateData);
 
     res.json({
-      message: "Updated successfully",
+      message: "Project updated successfully",
       data: existing,
     });
+
   } catch (err) {
     console.error("Update error:", err);
     res.status(500).json({ error: "Server error" });
@@ -131,14 +141,12 @@ exports.getRecentProjects = async (req, res) => {
 };
 
 /* =====================================================
-   GET ONGOING PROJECTS — only status = "ongoing"
+   GET ONGOING PROJECTS
 ===================================================== */
 exports.getOngoingProjects = async (req, res) => {
   try {
     const projects = await ProjectDetails.findAll({
-      where: {
-        status: "ongoing", // ✅ ONLY ongoing
-      },
+      where: { status: "ongoing" },
       order: [["name", "ASC"]],
     });
 
@@ -149,14 +157,14 @@ exports.getOngoingProjects = async (req, res) => {
 };
 
 /* =====================================================
-   GET COMPLETED PROJECTS — everything except "ongoing"
+   GET COMPLETED PROJECTS
 ===================================================== */
 exports.getCompletedProjects = async (req, res) => {
   try {
     const projects = await ProjectDetails.findAll({
       where: {
         status: {
-          [Op.ne]: "ongoing", // ✅ completed + sold_out + anything else
+          [Op.ne]: "ongoing",
         },
       },
       order: [["name", "ASC"]],
@@ -176,9 +184,9 @@ exports.getProjectsByCategory = async (req, res) => {
     const { category } = req.query;
 
     const projects = await ProjectDetails.findAll({
-      where: { 
+      where: {
         category,
-        status: "ongoing"   // ✅ only show ongoing projects
+        status: "ongoing",
       },
       attributes: ["projectId", "name", "status"],
       order: [["name", "ASC"]],

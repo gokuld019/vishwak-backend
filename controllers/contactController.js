@@ -83,3 +83,48 @@ exports.deleteContact = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+
+exports.submitWidgetLead = async (req, res) => {
+
+  try {
+
+    console.log("WIDGET LEAD BODY:", req.body);
+
+    const { name, phone, location } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone missing"
+      });
+    }
+
+    const saved = await Contact.create({
+      name: name || "Brochure User",
+      email: "otp@lead.com",
+      phone,
+      location,
+      leadSource: "OTP Brochure",
+      inquiry: "Brochure Download"
+    });
+
+    console.log("LEAD SAVED:", saved.id);
+
+    res.json({
+      success: true,
+      data: saved
+    });
+
+  } catch (err) {
+
+    console.log("WIDGET LEAD ERROR:", err);
+
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+
+  }
+
+};

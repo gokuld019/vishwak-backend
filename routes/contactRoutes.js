@@ -6,14 +6,18 @@ const {
   getContacts,
   getContactById,
   deleteContact,
+  submitWidgetLead   
 } = require('../controllers/contactController');
 
-// Public
+
+router.post("/widget-lead", submitWidgetLead);   // ⭐ FIRST
+
 router.post('/', submitContact);
 
-// Admin
 router.get('/', auth, getContacts);
+
 router.get('/:id', auth, getContactById);
+
 router.delete('/:id', auth, deleteContact);
 
 module.exports = router;

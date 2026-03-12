@@ -1,56 +1,61 @@
-const WhyPoint = require("../models/WhyPoint");
+const Why = require("../models/WhyPoint");
 
-// GET all WHY points for a project
-exports.getWhyByProject = async (req, res) => {
+// =============================
+// GET WHY POINTS
+// =============================
+exports.getWhyPoints = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const points = await WhyPoint.findAll({
+    const points = await Why.findAll({
       where: { projectId },
       order: [["sortOrder", "ASC"]],
     });
 
-    res.json(points);
-  } catch (err) {
-    console.error("Error fetching WHY points:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(200).json(points);
+
+  } catch (error) {
+    console.error("Error fetching why points:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// REPLACE all WHY points for a project (bulk insert)
-exports.replaceWhyForProject = async (req, res) => {
+// =============================
+// SAVE WHY POINTS
+// =============================
+exports.saveWhyPoints = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { points } = req.body; // array of WHY cards
+    const { points } = req.body;
 
-    if (!projectId) {
-      return res.status(400).json({ error: "projectId is required" });
+    if (!Array.isArray(points)) {
+      return res.status(400).json({
+        message: "Points must be an array",
+      });
     }
 
-    if (!Array.isArray(points) || points.length === 0) {
-      return res.status(400).json({ error: "points must be a non-empty array" });
-    }
+    // 🔥 Delete old records
+    await Why.destroy({
+      where: { projectId },
+    });
 
-    // delete old WHY points
-    await WhyPoint.destroy({ where: { projectId } });
-
-    // insert new WHY cards
-    const toInsert = points.map((p, index) => ({
+    // 🔥 Insert updated records
+    const newPoints = points.map((point, index) => ({
       projectId,
-      title: p.title,
-      description: p.description,
-      iconKey: p.iconKey || "MapPin",
-      sortOrder: p.sortOrder || index + 1,
+      title: point.title,
+      description: point.description,
+      iconKey: point.iconKey,
+      sortOrder: point.sortOrder || index + 1,
     }));
 
-    const created = await WhyPoint.bulkCreate(toInsert);
+    await Why.bulkCreate(newPoints);
 
-    res.json({
-      message: "WHY section updated",
-      data: created,
+    res.status(200).json({
+      message: "Why section saved successfully",
     });
-  } catch (err) {
-    console.error("Error replacing WHY points:", err);
-    res.status(500).json({ error: "Server error" });
+
+  } catch (error) {
+    console.error("Error saving why points:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
