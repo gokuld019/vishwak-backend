@@ -45,6 +45,7 @@ const projectMediaRoutes = require("./routes/projectMediaRoutes");
 const careerRoutes = require("./routes/careerRoutes");
 const contactFormRoutes = require("./routes/contactFormRoutes");
 const availablePlotRoutes = require("./routes/availablePlotRoutes");
+const enquiryRoutes = require("./routes/enquiryRoutes");
 
 const app = express();
 
@@ -91,7 +92,7 @@ app.use("/api/amenities", amenityRoutes);
 app.use("/api/articles", articleRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/commercial", commercialRoutes);
-app.use("/api/contact", contactRoutes);
+app.use("/api/contacts", contactRoutes);
 app.use("/api/brochure", brochureRoutes);
 app.use("/api/project-details", projectDetailsRoutes);
 app.use("/api/project-stats", projectStatsRoutes);
@@ -110,7 +111,10 @@ app.use("/api/careers", careerRoutes);
 app.use("/api/contact-form", contactFormRoutes);
 app.use("/api/chat", require("./routes/chat"));
 app.use("/api/available-plots", availablePlotRoutes);
-
+app.use("/api/enquiry", enquiryRoutes);
+app.get("/api/test", (req, res) => {
+  res.send("TEST WORKING");
+});
 /* =========================================================
    HEALTH CHECK
    ========================================================= */
