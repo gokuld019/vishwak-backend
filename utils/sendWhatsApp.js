@@ -17,7 +17,7 @@ const sendWhatsAppLead = async ({ name, phone, message }) => {
           namespace: "ec0b0176_ff4e_4ad1_a761_35494dc83649",
           to_and_components: [
             {
-              to: ["918667642578"], // ADMIN NUMBER
+              to: ["917824889999"], // ADMIN NUMBER
               components: {
                 body_name: {
                   type: "text",
