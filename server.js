@@ -14,7 +14,7 @@ const sequelize = require("./config/db");
    ========================================================= */
 require("./models/ProjectDetails");
 require("./models/AvailablePlot");
-require("./models/ProjectNearbyPlace");   // ✅ ADDED THIS LINE
+require("./models/ProjectNearbyPlace");
 
 /* =========================================================
    IMPORT ROUTES
@@ -59,16 +59,31 @@ app.use(cookieParser());
 /* =========================================================
    CORS CONFIG
    ========================================================= */
+const allowedOrigins = [
+  "https://vishwak-properties.vercel.app",
+  "https://vishwak-properties-git-main-gokuld019s-projects.vercel.app",
+  "https://vishwak-properties-8opx.vercel.app",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: [
-      "https://vishwak-properties.vercel.app",
-      "https://vishwak-properties-git-main-gokuld019s-projects.vercel.app",
-      "https://vishwak-properties-8opx.vercel.app",
-      "http://localhost:3000",
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman, mobile apps, curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   })
 );
+
+// NOTE: Do NOT add app.options() here — cors() middleware above
+// already handles OPTIONS preflight requests automatically.
 
 /* =========================================================
    STATIC FILES
@@ -112,9 +127,11 @@ app.use("/api/contact-form", contactFormRoutes);
 app.use("/api/chat", require("./routes/chat"));
 app.use("/api/available-plots", availablePlotRoutes);
 app.use("/api/enquiry", enquiryRoutes);
+
 app.get("/api/test", (req, res) => {
   res.send("TEST WORKING");
 });
+
 /* =========================================================
    HEALTH CHECK
    ========================================================= */

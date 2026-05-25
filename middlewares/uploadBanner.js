@@ -2,21 +2,30 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const bannerPath = "./uploads/banners";
+const uploadPath = "uploads/banners";
 
-if (!fs.existsSync(bannerPath)) {
-  fs.mkdirSync(bannerPath, { recursive: true });
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, bannerPath),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + "-" + Math.random() + path.extname(file.originalname)),
+  destination: function (req, file, cb) {
+    cb(null, uploadPath);
+  },
+
+  filename: function (req, file, cb) {
+    const unique =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    cb(
+      null,
+      unique + path.extname(file.originalname)
+    );
+  },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
 module.exports = upload;

@@ -1,14 +1,13 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/db");
 
 const Banner = sequelize.define(
-  'Banner',
+  "Banner",
   {
-    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-
-    image: {
-      type: DataTypes.STRING,
-      allowNull: false, // e.g. '/uploads/banners/hero1.webp' OR external URL
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
 
     title: {
@@ -21,20 +20,28 @@ const Banner = sequelize.define(
       allowNull: true,
     },
 
-    highlight: {
+    image: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
 
-    // ⭐ NEW FIELD
     deviceType: {
       type: DataTypes.ENUM("web", "mobile"),
-      allowNull: false,
-      defaultValue: "web", // old banners will be treated as web
+      defaultValue: "web",
+    },
+
+    sortOrder: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
+
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
     },
   },
   {
-    tableName: 'banners',
+    tableName: "banners",
     timestamps: true,
   }
 );
